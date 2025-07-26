@@ -1,0 +1,26 @@
+{
+  "name": "coo-analytics-agent",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "agent.js",
+  "scripts": {
+    "start": "node agent.js",
+    "interactive": "node interactive.js",
+    "ai-insights": "node aiInsightsDemo.js"
+  },
+  "keywords": [
+    "analytics",
+    "coo",
+    "product-analytics",
+    "mixpanel",
+    "ai-insights"
+  ],
+  "author": "",
+  "license": "ISC",
+  "description": "COO Analytics Agent with AI-powered ProductAnalyticsAgent for natural language insights",
+  "dependencies": {
+    "dotenv": "^16.4.7",
+    "mixpanel": "^0.18.0"
+  },
+  "packageManager": "pnpm@10.13.1+sha512.37ebf1a5c7a30d5fabe0c5df44ee8da4c965ca0c5af3dbab28c3a1681b70a256218d05c81c9c0dcf767ef6b8551eb5b960042b9ed4300c59242336377e01cfad"
+}
