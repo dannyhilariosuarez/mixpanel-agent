@@ -1,178 +1,326 @@
-# 🧠 COO Analytics Agent
+# 🎯 Event Tracking API
 
-> **AI-Powered ProductAnalyticsAgent with Real-Time Mixpanel Tracking**
+> **HTTP API for tracking POST & UPLOAD events from external applications**
 
-Natural language interface for COO-level product insights with comprehensive analytics tracking and AI-powered pattern learning.
+Simple API to track when users create posts and upload files. Analyze content creation patterns and get behavioral insights.
 
-## ✨ Key Features
+## ✨ Core Features
 
-✅ **Natural Language Queries** - Ask questions in plain English  
-✅ **AI Insight Synthesis** - Confidence-scored recommendations  
-✅ **Pattern Learning** - Track implementation outcomes  
-✅ **Executive Summaries** - Ready for C-level presentations  
-✅ **Interactive CLI** - Real-time question & answer interface  
-✅ **Real Mixpanel Tracking** - Comprehensive analytics on usage patterns  
-
-## 📊 NEW: Mixpanel Analytics Integration
-
-**Every interaction is now tracked** for deep insights into COO analytics usage:
-
-### 🎯 Tracked Events
-- **User Queries** - Questions asked, processing times, success rates
-- **AI Insights** - Generated insights, confidence scores, recommendations  
-- **Pattern Learning** - Implementation outcomes, success tracking
-- **Session Analytics** - Duration, query patterns, user behavior
-- **Data Access** - Which metrics are most valuable to COOs
-
-### 📈 Analytics Dashboard Ready
-Track your COO's analytics usage:
-- Most popular business metrics queried
-- AI insight generation performance
-- Query complexity and success rates  
-- Feature adoption analysis trends
-- Executive dashboard engagement
-
-**👉 See [MIXPANEL_SETUP.md](./MIXPANEL_SETUP.md) for setup instructions**
+✅ **HTTP API for Event Tracking** - Track posts and uploads from any application  
+✅ **Post Event Tracking** - Track content creation (text, image, video posts)  
+✅ **Upload Event Tracking** - Track file uploads (images, documents, videos)  
+✅ **Content Analytics** - Analyze post/upload patterns and user behavior  
+✅ **User Activity Analysis** - Track individual and aggregate content creation  
+✅ **Mixpanel Integration** - All events automatically sent to Mixpanel  
 
 ## 🚀 Quick Start
 
 ```bash
-# 1. Set up Mixpanel (optional - works with mock tracking)
-cp env.example .env
-# Add your Mixpanel credentials to .env
+# Install dependencies
+npm install
 
-# 2. Run the AI agent
+# Start the API server
+npm start
+# Server runs on http://localhost:3000
+```
+
+## 📡 API Endpoints
+
+### **Track Events:**
+
+```bash
+# Track post creation
+curl -X POST http://localhost:3000/track/post \
+  -H "Content-Type: application/json" \
+  -d '{"userId": "user123", "postType": "text", "properties": {"category": "blog", "title": "My First Post"}}'
+
+# Track file uploads
+curl -X POST http://localhost:3000/track/upload \
+  -H "Content-Type: application/json" \
+  -d '{"userId": "user123", "fileType": "image", "properties": {"size": 1024000, "method": "drag_drop"}}'
+```
+
+### **Get Analytics:**
+
+```bash
+# Get content creation analysis for all users
+curl -X POST http://localhost:3000/analyze \
+  -H "Content-Type: application/json" \
+  -d '{}'
+
+# Get analysis for specific user
+curl -X POST http://localhost:3000/analyze \
+  -H "Content-Type: application/json" \
+  -d '{"userId": "user123"}'
+
+# Get current metrics
+curl http://localhost:3000/metrics
+
+# Health check
+curl http://localhost:3000/health
+
+# API documentation
+curl http://localhost:3000/docs
+```
+
+## 🎯 Integration Examples
+
+### **JavaScript/TypeScript:**
+
+```javascript
+const API_BASE = 'http://localhost:3000';
+
+class ContentTracker {
+  async trackPost(userId, postType = 'text', properties = {}) {
+    const response = await fetch(`${API_BASE}/track/post`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId, postType, properties })
+    });
+    return response.json();
+  }
+
+  async trackUpload(userId, fileType = 'unknown', properties = {}) {
+    const response = await fetch(`${API_BASE}/track/upload`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId, fileType, properties })
+    });
+    return response.json();
+  }
+
+  async getAnalytics(userId = null) {
+    const response = await fetch(`${API_BASE}/analyze`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId })
+    });
+    return response.json();
+  }
+}
+
+// Usage
+const tracker = new ContentTracker();
+await tracker.trackPost('user123', 'text', { category: 'blog', title: 'Hello World' });
+await tracker.trackUpload('user123', 'image', { size: 2048000, format: 'jpg' });
+const analytics = await tracker.getAnalytics();
+```
+
+### **Python:**
+
+```python
+import requests
+
+class ContentTracker:
+    def __init__(self, base_url="http://localhost:3000"):
+        self.base_url = base_url
+    
+    def track_post(self, user_id, post_type="text", properties={}):
+        response = requests.post(f"{self.base_url}/track/post", json={
+            "userId": user_id,
+            "postType": post_type,
+            "properties": properties
+        })
+        return response.json()
+    
+    def track_upload(self, user_id, file_type="unknown", properties={}):
+        response = requests.post(f"{self.base_url}/track/upload", json={
+            "userId": user_id,
+            "fileType": file_type,
+            "properties": properties
+        })
+        return response.json()
+    
+    def get_analytics(self, user_id=None):
+        response = requests.post(f"{self.base_url}/analyze", json={
+            "userId": user_id
+        })
+        return response.json()
+
+# Usage
+tracker = ContentTracker()
+tracker.track_post("user123", "text", {"category": "blog", "title": "Hello World"})
+tracker.track_upload("user123", "image", {"size": 2048000, "format": "jpg"})
+analytics = tracker.get_analytics()
+```
+
+### **React/Frontend:**
+
+```jsx
+import { useCallback } from 'react';
+
+const useContentTracker = () => {
+  const trackPost = useCallback(async (postType, properties = {}) => {
+    const userId = getCurrentUserId(); // Your user ID logic
+    await fetch('http://localhost:3000/track/post', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId, postType, properties })
+    });
+  }, []);
+
+  const trackUpload = useCallback(async (fileType, properties = {}) => {
+    const userId = getCurrentUserId();
+    await fetch('http://localhost:3000/track/upload', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId, fileType, properties })
+    });
+  }, []);
+
+  return { trackPost, trackUpload };
+};
+
+// Component usage
+const PostEditor = () => {
+  const { trackPost } = useContentTracker();
+
+  const handlePostSubmit = (postData) => {
+    trackPost('text', { 
+      category: postData.category, 
+      title: postData.title,
+      wordCount: postData.content.split(' ').length
+    });
+    // Your post submission logic
+  };
+
+  return <PostForm onSubmit={handlePostSubmit} />;
+};
+
+const FileUploader = () => {
+  const { trackUpload } = useContentTracker();
+
+  const handleFileUpload = (file) => {
+    trackUpload(file.type.split('/')[0], {
+      size: file.size,
+      format: file.type.split('/')[1],
+      method: 'drop_zone'
+    });
+    // Your upload logic
+  };
+
+  return <DropZone onDrop={handleFileUpload} />;
+};
+```
+
+## 📊 Response Format
+
+All endpoints return JSON responses:
+
+```json
+{
+  "success": true,
+  "event": {
+    "event": "post_created",
+    "properties": {
+      "post_type": "text",
+      "content_category": "blog",
+      "title": "My First Post",
+      "timestamp": "2024-01-01T12:00:00.000Z",
+      "session_id": "session_user123_1704110400000",
+      "user_id": "user123"
+    },
+    "user_id": "user123",
+    "timestamp": 1704110400000
+  },
+  "timestamp": "2024-01-01T12:00:00.000Z",
+  "message": "Post event tracked successfully"
+}
+```
+
+### **Analytics Response:**
+
+```json
+{
+  "success": true,
+  "analysis": {
+    "insights": [
+      {
+        "type": "content_balance",
+        "discovery": "Users create 3.2x more posts than uploads",
+        "recommendation": "Consider promoting file upload features to increase engagement",
+        "confidence": 0.85
+      },
+      {
+        "type": "content_preference", 
+        "discovery": "text posts are most popular (78.3%)",
+        "recommendation": "Optimize text post creation experience",
+        "confidence": 0.90
+      }
+    ],
+    "summary": {
+      "totalActivity": "145 total events from 32 users",
+      "contentBreakdown": "112 posts, 33 uploads",
+      "topPostType": "text",
+      "topFileType": "image"
+    },
+    "metrics": {
+      "totalEvents": 145,
+      "uniqueUsers": 32,
+      "posts": 112,
+      "uploads": 33,
+      "postToUploadRatio": "3.39"
+    }
+  }
+}
+```
+
+## 📈 What Gets Tracked & Analyzed
+
+### **Events Tracked:**
+- `post_created` - User created a post (text, image, video, etc.)
+- `file_uploaded` - User uploaded a file (image, document, video, etc.)
+
+### **Post Properties:**
+- `post_type`: text, image, video, link, poll
+- `content_category`: blog, news, personal, business
+- `title`, `wordCount`, `hasMedia`
+
+### **Upload Properties:**
+- `file_type`: image, document, video, audio
+- `file_size`: bytes
+- `upload_method`: drag_drop, browse, paste, api
+
+### **Analytics Generated:**
+- **Content Balance** - Post vs upload ratios
+- **Popular Content Types** - Most common post and file types
+- **User Activity Patterns** - Posts and uploads per user
+- **Time-based Analysis** - Peak content creation hours
+- **Content Preferences** - Category and format preferences
+
+## 📊 Mixpanel Integration
+
+Set up your Mixpanel credentials:
+
+```bash
+cp env.example .env
+# Edit .env with your MIXPANEL_PROJECT_TOKEN and MIXPANEL_API_SECRET
+```
+
+All tracked events are automatically sent to Mixpanel with rich context.
+
+## 🚀 Deployment
+
+```bash
+# Start API server
 npm start
 
-# 3. Interactive mode - ask questions in natural language
-npm run interactive
+# Production deployment
+PORT=3000 npm start
+
+# Docker
+docker build -t content-tracking-api .
+docker run -p 3000:3000 content-tracking-api
 ```
 
-## 🎯 Example Usage
+## 📁 Project Structure
 
-```bash
-🔍 Your question: How many users do we have?
-📊 USER METRICS:
-   Total Users: 45,230
-   Active Users (30d): 18,650  
-   Growth Rate: 15.0%
-
-💡 GENERATED INSIGHTS:
-1. Strong user growth at 15.0% indicates healthy market demand
-   Confidence: 87.0%
-   Recommendation: Invest in user acquisition channels that are working
-   Expected Impact: +25% user growth acceleration
-```
-
-## 🏗️ Architecture
-
-```javascript
-class ProductAnalyticsAgent {
-  constructor() {
-    this.mixpanel = new MixpanelMCP();  // ✅ Real Mixpanel tracking
-    this.insights = [];                 // AI-generated insights
-    this.patterns = new Map();          // Pattern learning
-  }
-
-  async analyzeUserBehavior() {
-    // Natural language queries → AI insights → Executive summary
-    // All tracked to Mixpanel for analytics
-  }
-}
-```
-
-## 🎯 Core Method: `analyzeUserBehavior()`
-
-The main ProductAnalyticsAgent method performs these natural language queries:
-
-1. **"Which features have the highest adoption in first week?"**  
-2. **"What actions correlate with 30-day retention?"**  
-3. **"Where do users drop off in the onboarding flow?"**  
-
-Then synthesizes AI insights with confidence scores and recommendations.
-
-### Example Output:
-```javascript
-{
-  insights: [
-    {
-      type: 'retention', 
-      discovery: 'Users who complete_profile retain 3x better',
-      confidence: 0.89,
-      recommendation: 'Prompt all users to complete_profile in first session',
-      expectedImpact: '+15% 30-day retention'
-    }
-  ],
-  summary: {
-    totalInsights: 3,
-    averageConfidence: '88.7%', 
-    topRecommendation: 'Simplify email_verification to single tap'
-  },
-  metrics: {
-    adoptionHealth: 5,
-    retentionStrength: 0.78,
-    onboardingEfficiency: 0.58
-  }
-}
-```
-
-## 💬 Interactive Mode
-
-Ask questions in natural language and get instant insights:
-
-```bash
-npm run interactive
-
-🔍 Your question: What drives user retention?
-🔍 Your question: Which features are underused?  
-�� Your question: How is our growth trending?
-🔍 Your question: What is our NPS score?
-🔍 Your question: analyze    # Full behavior analysis
-```
-
-**Supports 12 data categories:**
-- User Metrics, Revenue, Engagement, Growth  
-- Feature Adoption, Retention, Onboarding
-- Support, Conversion, Performance, Competitive, Product Health
-
-## 🧠 AI Pattern Learning
-
-The agent learns from implementation outcomes:
-
-```javascript
-// Track if recommendations work
-await agent.trackOutcome('insight_1', true, { improved: true });
-// → Updates confidence scores for future insights
-```
-
-## 📊 Mixpanel Events Tracked
-
-| Event | What It Tracks |
-|-------|----------------|
-| `coo_analytics_initialized` | System startup |
-| `coo_query_asked` | User questions |
-| `coo_data_accessed` | Data categories accessed |
-| `insight_generated` | AI insights created |
-| `insight_outcome_tracked` | Implementation results |
-| `interactive_session_*` | CLI usage patterns |
-
-## 🛠️ Scripts
-
-```bash
-npm start                    # Run ProductAnalyticsAgent core analysis
-npm run interactive         # Interactive CLI mode  
-npm run ai-insights         # AI insights demo
-```
-
-## 🎯 Design Principles Achieved
-
-✅ **Natural language interface** as specified  
-✅ **Confidence-based insight ranking**  
-✅ **Pattern learning** from implementation outcomes  
-✅ **Executive summary** with clear actions  
-✅ **Clean, focused ProductAnalyticsAgent** design  
-✅ **Comprehensive analytics tracking** with Mixpanel  
+- **`api-server.js`** - HTTP API server for external consumption
+- **`agent.js`** - Core event tracking and analysis engine
+- **`env.example`** - Mixpanel configuration template
 
 ---
 
-**Built for COOs who want AI-powered product insights with full analytics visibility.** 🏆 
+**Simple content tracking API ready for external consumption!** 🚀
+
+**Track posts & uploads → Analyze content patterns → Optimize content strategy** 🎯 

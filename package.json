@@ -3,60 +3,33 @@
   "version": "1.0.0",
   "type": "module",
   "main": "agent.js",
-  "exports": {
-    ".": "./productAnalyticsAgent.js",
-    "./agent": "./productAnalyticsAgent.js",
-    "./mcp": "./mcp-server.js",
-    "./api": "./api-server.js"
-  },
-  "bin": {
-    "coo-analytics-mcp": "./mcp-server.js"
-  },
   "scripts": {
-    "start": "node agent.js",
-    "interactive": "node interactive.js",
-    "ai-insights": "node aiInsightsDemo.js",
-    "mcp-server": "node mcp-server.js",
-    "api-server": "node api-server.js",
-    "test-mcp": "node test-mcp-client.js"
+    "start": "node api-server.js"
   },
   "keywords": [
     "analytics",
-    "coo",
-    "product-analytics",
+    "post-tracking",
+    "upload-tracking",
+    "content-analytics",
     "mixpanel",
-    "ai-insights",
-    "mcp",
-    "mcp-server",
-    "business-intelligence"
+    "api"
   ],
   "author": "",
   "license": "ISC",
-  "description": "COO Analytics Agent with AI-powered ProductAnalyticsAgent for natural language insights. Consumable via MCP protocol, HTTP API, or direct import.",
+  "description": "Event tracking API for POST and UPLOAD events - track content creation and file uploads from external applications",
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.17.0",
-    "cors": "^2.8.5",
     "dotenv": "^16.4.7",
-    "express": "^4.21.2",
-    "mixpanel": "^0.18.0"
+    "mixpanel": "^0.18.0",
+    "express": "^4.18.0",
+    "cors": "^2.8.5"
   },
   "engines": {
     "node": ">=18.0.0"
   },
-  "repository": {
-    "type": "git",
-    "url": "."
-  },
   "files": [
-    "productAnalyticsAgent.js",
-    "mockData.js",
-    "mcp-server.js",
-    "api-server.js",
     "agent.js",
-    "interactive.js",
+    "api-server.js",
     "env.example",
-    "README.md",
-    "MIXPANEL_SETUP.md",
-    "INTEGRATION.md"
+    "README.md"
   ]
 }
