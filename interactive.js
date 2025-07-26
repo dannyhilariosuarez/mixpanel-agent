@@ -8,6 +8,8 @@ class InteractiveAnalytics {
       input: process.stdin,
       output: process.stdout
     });
+    this.sessionStartTime = new Date();
+    this.queryCount = 0;
   }
 
   async start() {
@@ -27,6 +29,13 @@ class InteractiveAnalytics {
     console.log('Type "help" to see commands');
     console.log('Type "exit" to quit\n');
 
+    // Track interactive session start
+    this.agent.mixpanel.trackEvent('interactive_session_started', {
+      start_time: this.sessionStartTime.toISOString(),
+      user_interface: 'cli',
+      session_type: 'interactive'
+    });
+
     this.promptUser();
   }
 
@@ -35,18 +44,19 @@ class InteractiveAnalytics {
       const query = input.trim();
       
       if (query.toLowerCase() === 'exit') {
-        console.log('\n👋 Thanks for using Interactive Analytics!');
-        this.rl.close();
-        process.exit(0);
+        await this.handleExit();
+        return;
       }
       
       if (query.toLowerCase() === 'help') {
+        this.trackCommand('help');
         this.showHelp();
         this.promptUser();
         return;
       }
 
       if (query.toLowerCase() === 'analyze') {
+        this.trackCommand('analyze');
         await this.runFullAnalysis();
         this.promptUser();
         return;
@@ -63,20 +73,73 @@ class InteractiveAnalytics {
     });
   }
 
+  async handleExit() {
+    const sessionDuration = Date.now() - this.sessionStartTime.getTime();
+    
+    // Track session end
+    this.agent.mixpanel.trackEvent('interactive_session_ended', {
+      session_duration_ms: sessionDuration,
+      session_duration_minutes: Math.round(sessionDuration / 60000),
+      total_queries: this.queryCount,
+      queries_per_minute: this.queryCount / (sessionDuration / 60000),
+      end_time: new Date().toISOString()
+    });
+
+    console.log('\n👋 Thanks for using Interactive Analytics!');
+    this.rl.close();
+    process.exit(0);
+  }
+
+  trackCommand(command) {
+    this.agent.mixpanel.trackEvent('interactive_command_used', {
+      command: command,
+      query_number: this.queryCount + 1,
+      session_time_elapsed: Date.now() - this.sessionStartTime.getTime(),
+      timestamp: new Date().toISOString()
+    });
+  }
+
   async processQuery(question) {
+    this.queryCount++;
+    
     try {
       console.log(`\n🧠 Processing: "${question}"\n`);
+      
+      // Track query start
+      this.agent.mixpanel.trackEvent('interactive_query_started', {
+        question: question,
+        query_number: this.queryCount,
+        question_length: question.length,
+        question_type: this.categorizeQuestion(question),
+        timestamp: new Date().toISOString()
+      });
+      
+      const startTime = Date.now();
       
       // Use the ProductAnalyticsAgent's mixpanel interface for natural language queries
       const result = await this.agent.mixpanel.query({
         natural_language: question
       });
 
+      const processingTime = Date.now() - startTime;
+
       // Display results based on type
       this.displayQueryResult(result);
 
       // Check if this generates insights
       const insights = this.generateInsightsFromResult(result, question);
+      
+      // Track query completion
+      this.agent.mixpanel.trackEvent('interactive_query_completed', {
+        question: question,
+        query_number: this.queryCount,
+        response_type: result.type,
+        processing_time_ms: processingTime,
+        insights_generated: insights.length,
+        had_data: result.type !== 'general_response',
+        timestamp: new Date().toISOString()
+      });
+
       if (insights.length > 0) {
         console.log('\n💡 GENERATED INSIGHTS:');
         insights.forEach((insight, i) => {
@@ -85,13 +148,45 @@ class InteractiveAnalytics {
           console.log(`   Recommendation: ${insight.recommendation}`);
           console.log(`   Expected Impact: ${insight.expectedImpact}`);
         });
+
+        // Track insights shown to user
+        this.agent.mixpanel.trackEvent('interactive_insights_displayed', {
+          question: question,
+          insights_count: insights.length,
+          average_confidence: insights.reduce((sum, i) => sum + i.confidence, 0) / insights.length,
+          insight_types: insights.map(i => i.type || 'unknown'),
+          timestamp: new Date().toISOString()
+        });
       }
 
     } catch (error) {
       console.log(`❌ Error processing query: ${error.message}`);
+      
+      // Track errors
+      this.agent.mixpanel.trackEvent('interactive_query_error', {
+        question: question,
+        error_message: error.message,
+        query_number: this.queryCount,
+        timestamp: new Date().toISOString()
+      });
     }
     
     console.log('\n' + '─'.repeat(50) + '\n');
+  }
+
+  categorizeQuestion(question) {
+    const lowerQ = question.toLowerCase();
+    if (lowerQ.includes('user') || lowerQ.includes('how many')) return 'user_metrics';
+    if (lowerQ.includes('revenue') || lowerQ.includes('money') || lowerQ.includes('mrr')) return 'revenue';
+    if (lowerQ.includes('feature') || lowerQ.includes('adoption')) return 'features';
+    if (lowerQ.includes('retention') || lowerQ.includes('stay')) return 'retention';
+    if (lowerQ.includes('growth') || lowerQ.includes('trend')) return 'growth';
+    if (lowerQ.includes('nps') || lowerQ.includes('satisfaction') || lowerQ.includes('health')) return 'health';
+    if (lowerQ.includes('competitor') || lowerQ.includes('market')) return 'competitive';
+    if (lowerQ.includes('performance') || lowerQ.includes('speed')) return 'performance';
+    if (lowerQ.includes('support') || lowerQ.includes('ticket')) return 'support';
+    if (lowerQ.includes('conversion') || lowerQ.includes('trial') || lowerQ.includes('paid')) return 'conversion';
+    return 'general';
   }
 
   displayQueryResult(result) {
@@ -383,7 +478,15 @@ class InteractiveAnalytics {
   async runFullAnalysis() {
     console.log('\n🎯 Running full behavior analysis...\n');
     
+    // Track full analysis start
+    this.agent.mixpanel.trackEvent('interactive_full_analysis_started', {
+      query_number: this.queryCount,
+      timestamp: new Date().toISOString()
+    });
+    
+    const startTime = Date.now();
     const analysis = await this.agent.analyzeUserBehavior();
+    const analysisTime = Date.now() - startTime;
     
     console.log('📊 === FULL ANALYSIS RESULTS ===\n');
     
@@ -404,6 +507,14 @@ class InteractiveAnalytics {
     console.log(`   Adoption Health: ${analysis.metrics.adoptionHealth}`);
     console.log(`   Retention Strength: ${(analysis.metrics.retentionStrength * 100).toFixed(1)}%`);
     console.log(`   Onboarding Efficiency: ${(analysis.metrics.onboardingEfficiency * 100).toFixed(1)}%`);
+    
+    // Track full analysis completion
+    this.agent.mixpanel.trackEvent('interactive_full_analysis_completed', {
+      analysis_time_ms: analysisTime,
+      insights_generated: analysis.insights.length,
+      average_confidence: parseFloat(analysis.summary.averageConfidence.replace('%', '')),
+      timestamp: new Date().toISOString()
+    });
     
     console.log('\n' + '═'.repeat(50) + '\n');
   }
